@@ -31,11 +31,14 @@ while true; do
   mem_used_pct="$(awk -v used="$mem_used_bytes" -v total="$mem_total_bytes" 'BEGIN {printf "%.1f", used/total*100}')"
   mem_line="used=${mem_used_gb}GB/${mem_total_gb}GB (${mem_used_pct}%)"
 
-  disk_line="$(diskutil info / | awk -F'[()]' '/Disk Size:/ || /Total Size:/ {total=$2; gsub(/[^0-9]/, "", total)} /Container Free Space:/ {free=$2; gsub(/[^0-9]/, "", free)} /Volume Free Space:/ {free=$2; gsub(/[^0-9]/, "", free)} END {if (total=="" || free=="") {printf "used=0.00GB/0.00GB (0.0%%)"; exit} used=total-free; pct=(total>0)?(used/total*100):0; printf "used=%.2fGB/%.2fGB (%.1f%%)", used/1024/1024/1024, total/1024/1024/1024, pct}')"
+  disk_info="$(diskutil info / | awk -F'[()]' '/Disk Size:/ || /Total Size:/ {total=$2; gsub(/[^0-9]/, "", total)} /Container Free Space:/ {free=$2; gsub(/[^0-9]/, "", free)} /Volume Free Space:/ {free=$2; gsub(/[^0-9]/, "", free)} END {if (total=="" || free=="") {printf "0 0 0"; exit} used=total-free; pct=(total>0)?(used/total*100):0; printf "%.2f %.2f %.1f", used/1024/1024/1024, total/1024/1024/1024, pct}')"
+  disk_used_gb="$(echo "$disk_info" | awk '{print $1}')"
+  disk_total_gb="$(echo "$disk_info" | awk '{print $2}')"
+  disk_used_pct="$(echo "$disk_info" | awk '{print $3}')"
 
-  printf "%s %s\n" "$timestamp" "$cpu_line" >> "$LOG_DIR/cpu.log"
-  printf "%s %s\n" "$timestamp" "$mem_line" >> "$LOG_DIR/memory.log"
-  printf "%s %s\n" "$timestamp" "$disk_line" >> "$LOG_DIR/disk.log"
+  printf "{\"timestamp\": \"%s\", \"total_percent\": %s, \"normalized_percent\": %s, \"cores\": %s}\n" "$timestamp" "$cpu_total" "$cpu_normalized" "$cpu_cores" >> "$LOG_DIR/cpu.jsonl"
+  printf "{\"timestamp\": \"%s\", \"used_gb\": %s, \"total_gb\": %s, \"used_percent\": %s}\n" "$timestamp" "$mem_used_gb" "$mem_total_gb" "$mem_used_pct" >> "$LOG_DIR/memory.jsonl"
+  printf "{\"timestamp\": \"%s\", \"used_gb\": %s, \"total_gb\": %s, \"used_percent\": %s}\n" "$timestamp" "$disk_used_gb" "$disk_total_gb" "$disk_used_pct" >> "$LOG_DIR/disk.jsonl"
 
   sleep "$INTERVAL_SECONDS"
 done
