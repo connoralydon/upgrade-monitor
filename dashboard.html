@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resource Monitor Dashboard</title>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1a1a2e;
+      color: #eee;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 12px;
+      color: #00d4ff;
+      font-size: 1.4rem;
+      flex-shrink: 0;
+    }
+    .last-updated {
+      text-align: center;
+      margin-bottom: 16px;
+      color: #aaa;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+    }
+    .dashboard {
+
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto 1fr;
+      gap: 12px;
+      flex: 1;
+      min-height: 0;
+    }
+    .card {
+      background: #16213e;
+      border-radius: 10px;
+      padding: 12px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+    .card h2 {
+      margin-bottom: 8px;
+      color: #00d4ff;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+    .disk-card {
+      grid-column: span 2;
+    }
+
+
+    .stats-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+      flex-shrink: 0;
+    }
+    .stats-table th, .stats-table td {
+      padding: 4px 8px;
+      text-align: right;
+      border-bottom: 1px solid #2a3f5f;
+      font-size: 0.85rem;
+    }
+    .stats-table th { color: #888; font-weight: normal; text-align: left; }
+    .stats-table td { font-family: monospace; color: #00ff88; }
+  </style>
+</head>
+<body>
+  <h1>Resource Monitor Dashboard</h1>
+  <div class="last-updated">Last update: 2026-01-10 16:16:45</div>
+  <div class="dashboard">
+    <div class="card">
+      <h2>CPU Percentiles</h2>
+      <table class="stats-table" id="cpu-stats"></table>
+    </div>
+    <div class="card">
+      <h2>Memory Percentiles</h2>
+      <table class="stats-table" id="memory-stats"></table>
+    </div>
+    <div class="card disk-card">
+      <h2>Disk Usage</h2>
+      <table class="stats-table" id="disk-stats"></table>
+    </div>
+  </div>
+
+  <script>
+    const cpuData = [{"timestamp": "2026-01-10 14:04:06", "total_percent": 166.9, "normalized_percent": 20.9, "cores": 8}, {"timestamp": "2026-01-10 14:05:06", "total_percent": 90.9, "normalized_percent": 11.4, "cores": 8}, {"timestamp": "2026-01-10 14:06:06", "total_percent": 93.9, "normalized_percent": 11.7, "cores": 8}, {"timestamp": "2026-01-10 14:07:06", "total_percent": 189.4, "normalized_percent": 23.7, "cores": 8}, {"timestamp": "2026-01-10 14:08:07", "total_percent": 133.1, "normalized_percent": 16.6, "cores": 8}, {"timestamp": "2026-01-10 14:09:07", "total_percent": 90.0, "normalized_percent": 11.2, "cores": 8}, {"timestamp": "2026-01-10 14:10:07", "total_percent": 260.1, "normalized_percent": 32.5, "cores": 8}, {"timestamp": "2026-01-10 14:11:07", "total_percent": 86.3, "normalized_percent": 10.8, "cores": 8}, {"timestamp": "2026-01-10 14:12:08", "total_percent": 80.7, "normalized_percent": 10.1, "cores": 8}, {"timestamp": "2026-01-10 14:13:08", "total_percent": 86.6, "normalized_percent": 10.8, "cores": 8}, {"timestamp": "2026-01-10 14:14:08", "total_percent": 52.8, "normalized_percent": 6.6, "cores": 8}, {"timestamp": "2026-01-10 14:15:09", "total_percent": 228.7, "normalized_percent": 28.6, "cores": 8}, {"timestamp": "2026-01-10 14:16:09", "total_percent": 169.3, "normalized_percent": 21.2, "cores": 8}, {"timestamp": "2026-01-10 14:17:09", "total_percent": 73.2, "normalized_percent": 9.2, "cores": 8}, {"timestamp": "2026-01-10 14:18:10", "total_percent": 95.7, "normalized_percent": 12.0, "cores": 8}, {"timestamp": "2026-01-10 14:19:10", "total_percent": 114.1, "normalized_percent": 14.3, "cores": 8}, {"timestamp": "2026-01-10 14:20:10", "total_percent": 121.7, "normalized_percent": 15.2, "cores": 8}, {"timestamp": "2026-01-10 14:21:10", "total_percent": 101.1, "normalized_percent": 12.6, "cores": 8}, {"timestamp": "2026-01-10 14:22:11", "total_percent": 623.7, "normalized_percent": 78.0, "cores": 8}, {"timestamp": "2026-01-10 14:23:57", "total_percent": 140.5, "normalized_percent": 17.6, "cores": 8}, {"timestamp": "2026-01-10 15:51:24", "total_percent": 324.5, "normalized_percent": 40.6, "cores": 8}, {"timestamp": "2026-01-10 15:52:25", "total_percent": 384.2, "normalized_percent": 48.0, "cores": 8}, {"timestamp": "2026-01-10 15:53:25", "total_percent": 124.5, "normalized_percent": 15.6, "cores": 8}, {"timestamp": "2026-01-10 15:57:39", "total_percent": 254.0, "normalized_percent": 31.8, "cores": 8}, {"timestamp": "2026-01-10 15:58:39", "total_percent": 183.8, "normalized_percent": 23.0, "cores": 8}, {"timestamp": "2026-01-10 15:59:39", "total_percent": 164.4, "normalized_percent": 20.6, "cores": 8}, {"timestamp": "2026-01-10 16:00:40", "total_percent": 214.9, "normalized_percent": 26.9, "cores": 8}, {"timestamp": "2026-01-10 16:01:40", "total_percent": 88.9, "normalized_percent": 11.1, "cores": 8}, {"timestamp": "2026-01-10 16:02:40", "total_percent": 120.2, "normalized_percent": 15.0, "cores": 8}, {"timestamp": "2026-01-10 16:03:41", "total_percent": 78.1, "normalized_percent": 9.8, "cores": 8}, {"timestamp": "2026-01-10 16:04:41", "total_percent": 162.0, "normalized_percent": 20.2, "cores": 8}, {"timestamp": "2026-01-10 16:05:41", "total_percent": 289.5, "normalized_percent": 36.2, "cores": 8}, {"timestamp": "2026-01-10 16:06:42", "total_percent": 157.9, "normalized_percent": 19.7, "cores": 8}, {"timestamp": "2026-01-10 16:07:42", "total_percent": 168.2, "normalized_percent": 21.0, "cores": 8}, {"timestamp": "2026-01-10 16:08:43", "total_percent": 152.7, "normalized_percent": 19.1, "cores": 8}, {"timestamp": "2026-01-10 16:09:43", "total_percent": 91.8, "normalized_percent": 11.5, "cores": 8}, {"timestamp": "2026-01-10 16:10:43", "total_percent": 136.0, "normalized_percent": 17.0, "cores": 8}, {"timestamp": "2026-01-10 16:11:43", "total_percent": 162.9, "normalized_percent": 20.4, "cores": 8}, {"timestamp": "2026-01-10 16:12:44", "total_percent": 120.9, "normalized_percent": 15.1, "cores": 8}, {"timestamp": "2026-01-10 16:13:44", "total_percent": 142.4, "normalized_percent": 17.8, "cores": 8}, {"timestamp": "2026-01-10 16:14:44", "total_percent": 228.4, "normalized_percent": 28.6, "cores": 8}, {"timestamp": "2026-01-10 16:15:45", "total_percent": 138.1, "normalized_percent": 17.3, "cores": 8}, {"timestamp": "2026-01-10 16:16:45", "total_percent": 192.9, "normalized_percent": 24.1, "cores": 8}];
+    const memoryData = [{"timestamp": "2026-01-10 14:04:06", "used_gb": 14.9, "total_gb": 16.0, "used_percent": 93.1}, {"timestamp": "2026-01-10 14:05:06", "used_gb": 14.9, "total_gb": 16.0, "used_percent": 93.1}, {"timestamp": "2026-01-10 14:06:06", "used_gb": 15.05, "total_gb": 16.0, "used_percent": 94.1}, {"timestamp": "2026-01-10 14:07:06", "used_gb": 14.42, "total_gb": 16.0, "used_percent": 90.2}, {"timestamp": "2026-01-10 14:08:07", "used_gb": 14.71, "total_gb": 16.0, "used_percent": 91.9}, {"timestamp": "2026-01-10 14:09:07", "used_gb": 14.85, "total_gb": 16.0, "used_percent": 92.8}, {"timestamp": "2026-01-10 14:10:07", "used_gb": 15.21, "total_gb": 16.0, "used_percent": 95.0}, {"timestamp": "2026-01-10 14:11:07", "used_gb": 14.17, "total_gb": 16.0, "used_percent": 88.6}, {"timestamp": "2026-01-10 14:12:08", "used_gb": 14.18, "total_gb": 16.0, "used_percent": 88.6}, {"timestamp": "2026-01-10 14:13:08", "used_gb": 14.42, "total_gb": 16.0, "used_percent": 90.1}, {"timestamp": "2026-01-10 14:14:08", "used_gb": 14.4, "total_gb": 16.0, "used_percent": 90.0}, {"timestamp": "2026-01-10 14:15:09", "used_gb": 15.08, "total_gb": 16.0, "used_percent": 94.2}, {"timestamp": "2026-01-10 14:16:09", "used_gb": 15.15, "total_gb": 16.0, "used_percent": 94.7}, {"timestamp": "2026-01-10 14:17:09", "used_gb": 15.19, "total_gb": 16.0, "used_percent": 94.9}, {"timestamp": "2026-01-10 14:18:10", "used_gb": 15.08, "total_gb": 16.0, "used_percent": 94.3}, {"timestamp": "2026-01-10 14:19:10", "used_gb": 15.17, "total_gb": 16.0, "used_percent": 94.8}, {"timestamp": "2026-01-10 14:20:10", "used_gb": 15.17, "total_gb": 16.0, "used_percent": 94.8}, {"timestamp": "2026-01-10 14:21:10", "used_gb": 15.17, "total_gb": 16.0, "used_percent": 94.8}, {"timestamp": "2026-01-10 14:22:11", "used_gb": 15.19, "total_gb": 16.0, "used_percent": 94.9}, {"timestamp": "2026-01-10 14:23:57", "used_gb": 15.2, "total_gb": 16.0, "used_percent": 95.0}, {"timestamp": "2026-01-10 15:51:24", "used_gb": 15.19, "total_gb": 16.0, "used_percent": 95.0}, {"timestamp": "2026-01-10 15:52:25", "used_gb": 15.19, "total_gb": 16.0, "used_percent": 95.0}, {"timestamp": "2026-01-10 15:53:25", "used_gb": 15.19, "total_gb": 16.0, "used_percent": 94.9}, {"timestamp": "2026-01-10 15:57:39", "used_gb": 15.17, "total_gb": 16.0, "used_percent": 94.8}, {"timestamp": "2026-01-10 15:58:39", "used_gb": 15.2, "total_gb": 16.0, "used_percent": 95.0}, {"timestamp": "2026-01-10 15:59:39", "used_gb": 15.18, "total_gb": 16.0, "used_percent": 94.9}, {"timestamp": "2026-01-10 16:00:40", "used_gb": 15.19, "total_gb": 16.0, "used_percent": 94.9}, {"timestamp": "2026-01-10 16:01:40", "used_gb": 15.05, "total_gb": 16.0, "used_percent": 94.1}, {"timestamp": "2026-01-10 16:02:40", "used_gb": 15.2, "total_gb": 16.0, "used_percent": 95.0}, {"timestamp": "2026-01-10 16:03:41", "used_gb": 15.2, "total_gb": 16.0, "used_percent": 95.0}, {"timestamp": "2026-01-10 16:04:41", "used_gb": 15.17, "total_gb": 16.0, "used_percent": 94.8}, {"timestamp": "2026-01-10 16:05:41", "used_gb": 15.17, "total_gb": 16.0, "used_percent": 94.8}, {"timestamp": "2026-01-10 16:06:42", "used_gb": 15.16, "total_gb": 16.0, "used_percent": 94.7}, {"timestamp": "2026-01-10 16:07:42", "used_gb": 15.19, "total_gb": 16.0, "used_percent": 94.9}, {"timestamp": "2026-01-10 16:08:43", "used_gb": 15.12, "total_gb": 16.0, "used_percent": 94.5}, {"timestamp": "2026-01-10 16:09:43", "used_gb": 15.11, "total_gb": 16.0, "used_percent": 94.5}, {"timestamp": "2026-01-10 16:10:43", "used_gb": 15.15, "total_gb": 16.0, "used_percent": 94.7}, {"timestamp": "2026-01-10 16:11:43", "used_gb": 15.15, "total_gb": 16.0, "used_percent": 94.7}, {"timestamp": "2026-01-10 16:12:44", "used_gb": 14.36, "total_gb": 16.0, "used_percent": 89.7}, {"timestamp": "2026-01-10 16:13:44", "used_gb": 15.13, "total_gb": 16.0, "used_percent": 94.5}, {"timestamp": "2026-01-10 16:14:44", "used_gb": 14.97, "total_gb": 16.0, "used_percent": 93.6}, {"timestamp": "2026-01-10 16:15:45", "used_gb": 15.06, "total_gb": 16.0, "used_percent": 94.1}, {"timestamp": "2026-01-10 16:16:45", "used_gb": 15.15, "total_gb": 16.0, "used_percent": 94.7}];
+    const diskData = [{"timestamp": "2026-01-10 14:04:06", "used_gb": 773.55, "total_gb": 926.35, "used_percent": 83.5}, {"timestamp": "2026-01-10 14:05:06", "used_gb": 773.55, "total_gb": 926.35, "used_percent": 83.5}, {"timestamp": "2026-01-10 14:06:06", "used_gb": 773.55, "total_gb": 926.35, "used_percent": 83.5}, {"timestamp": "2026-01-10 14:07:06", "used_gb": 773.55, "total_gb": 926.35, "used_percent": 83.5}, {"timestamp": "2026-01-10 14:08:07", "used_gb": 773.55, "total_gb": 926.35, "used_percent": 83.5}, {"timestamp": "2026-01-10 14:09:07", "used_gb": 773.56, "total_gb": 926.35, "used_percent": 83.5}, {"timestamp": "2026-01-10 14:10:07", "used_gb": 773.55, "total_gb": 926.35, "used_percent": 83.5}, {"timestamp": "2026-01-10 14:11:07", "used_gb": 773.58, "total_gb": 926.35, "used_percent": 83.5}, {"timestamp": "2026-01-10 14:12:08", "used_gb": 773.58, "total_gb": 926.35, "used_percent": 83.5}, {"timestamp": "2026-01-10 14:13:08", "used_gb": 773.58, "total_gb": 926.35, "used_percent": 83.5}, {"timestamp": "2026-01-10 14:14:08", "used_gb": 773.58, "total_gb": 926.35, "used_percent": 83.5}, {"timestamp": "2026-01-10 14:15:09", "used_gb": 773.57, "total_gb": 926.35, "used_percent": 83.5}, {"timestamp": "2026-01-10 14:16:09", "used_gb": 773.57, "total_gb": 926.35, "used_percent": 83.5}, {"timestamp": "2026-01-10 14:17:09", "used_gb": 773.57, "total_gb": 926.35, "used_percent": 83.5}, {"timestamp": "2026-01-10 14:18:10", "used_gb": 773.58, "total_gb": 926.35, "used_percent": 83.5}, {"timestamp": "2026-01-10 14:19:10", "used_gb": 773.58, "total_gb": 926.35, "used_percent": 83.5}, {"timestamp": "2026-01-10 14:20:10", "used_gb": 773.59, "total_gb": 926.35, "used_percent": 83.5}, {"timestamp": "2026-01-10 14:21:10", "used_gb": 773.59, "total_gb": 926.35, "used_percent": 83.5}, {"timestamp": "2026-01-10 14:22:11", "used_gb": 773.59, "total_gb": 926.35, "used_percent": 83.5}, {"timestamp": "2026-01-10 14:23:57", "used_gb": 773.64, "total_gb": 926.35, "used_percent": 83.5}, {"timestamp": "2026-01-10 15:51:24", "used_gb": 773.72, "total_gb": 926.35, "used_percent": 83.5}, {"timestamp": "2026-01-10 15:52:25", "used_gb": 773.69, "total_gb": 926.35, "used_percent": 83.5}, {"timestamp": "2026-01-10 15:53:25", "used_gb": 773.67, "total_gb": 926.35, "used_percent": 83.5}, {"timestamp": "2026-01-10 15:57:39", "used_gb": 773.73, "total_gb": 926.35, "used_percent": 83.5}, {"timestamp": "2026-01-10 15:58:39", "used_gb": 773.72, "total_gb": 926.35, "used_percent": 83.5}, {"timestamp": "2026-01-10 15:59:39", "used_gb": 773.74, "total_gb": 926.35, "used_percent": 83.5}, {"timestamp": "2026-01-10 16:00:40", "used_gb": 773.74, "total_gb": 926.35, "used_percent": 83.5}, {"timestamp": "2026-01-10 16:01:40", "used_gb": 773.74, "total_gb": 926.35, "used_percent": 83.5}, {"timestamp": "2026-01-10 16:02:40", "used_gb": 773.75, "total_gb": 926.35, "used_percent": 83.5}, {"timestamp": "2026-01-10 16:03:41", "used_gb": 773.76, "total_gb": 926.35, "used_percent": 83.5}, {"timestamp": "2026-01-10 16:04:41", "used_gb": 773.76, "total_gb": 926.35, "used_percent": 83.5}, {"timestamp": "2026-01-10 16:05:41", "used_gb": 773.76, "total_gb": 926.35, "used_percent": 83.5}, {"timestamp": "2026-01-10 16:06:42", "used_gb": 773.76, "total_gb": 926.35, "used_percent": 83.5}, {"timestamp": "2026-01-10 16:07:42", "used_gb": 773.78, "total_gb": 926.35, "used_percent": 83.5}, {"timestamp": "2026-01-10 16:08:43", "used_gb": 773.72, "total_gb": 926.35, "used_percent": 83.5}, {"timestamp": "2026-01-10 16:09:43", "used_gb": 773.72, "total_gb": 926.35, "used_percent": 83.5}, {"timestamp": "2026-01-10 16:10:43", "used_gb": 773.72, "total_gb": 926.35, "used_percent": 83.5}, {"timestamp": "2026-01-10 16:11:43", "used_gb": 773.73, "total_gb": 926.35, "used_percent": 83.5}, {"timestamp": "2026-01-10 16:12:44", "used_gb": 773.72, "total_gb": 926.35, "used_percent": 83.5}, {"timestamp": "2026-01-10 16:13:44", "used_gb": 773.73, "total_gb": 926.35, "used_percent": 83.5}, {"timestamp": "2026-01-10 16:14:44", "used_gb": 773.72, "total_gb": 926.35, "used_percent": 83.5}, {"timestamp": "2026-01-10 16:15:45", "used_gb": 773.73, "total_gb": 926.35, "used_percent": 83.5}, {"timestamp": "2026-01-10 16:16:45", "used_gb": 773.73, "total_gb": 926.35, "used_percent": 83.5}];
+    const lastTimestamp = "2026-01-10 16:16:45";
+
+    function percentile(arr, p) {
+      const sorted = [...arr].sort((a, b) => a - b);
+      const idx = (p / 100) * (sorted.length - 1);
+      const lower = Math.floor(idx);
+      const upper = Math.ceil(idx);
+      if (lower === upper) return sorted[lower];
+      return sorted[lower] + (sorted[upper] - sorted[lower]) * (idx - lower);
+    }
+
+    function computePercentiles(values) {
+      return {
+        p50: percentile(values, 50),
+        p75: percentile(values, 75),
+        p90: percentile(values, 90),
+        p99: percentile(values, 99),
+        p999: percentile(values, 99.9)
+      };
+    }
+
+    function renderStatsTable(elementId, stats) {
+      document.getElementById(elementId).innerHTML = `
+        <tr><th>Percentile</th><th>P50</th><th>P75</th><th>P90</th><th>P99</th><th>P99.9</th></tr>
+        <tr>
+          <td></td>
+          <td>${stats.p50.toFixed(1)}%</td>
+          <td>${stats.p75.toFixed(1)}%</td>
+          <td>${stats.p90.toFixed(1)}%</td>
+          <td>${stats.p99.toFixed(1)}%</td>
+          <td>${stats.p999.toFixed(1)}%</td>
+        </tr>
+      `;
+    }
+
+    function renderDiskTable(latest) {
+      document.getElementById('disk-stats').innerHTML = `
+        <tr><th>Used</th><th>Total</th><th>Usage</th></tr>
+        <tr>
+          <td>${latest.used_gb.toFixed(1)} GB</td>
+          <td>${latest.total_gb.toFixed(1)} GB</td>
+          <td>${latest.used_percent.toFixed(1)}%</td>
+        </tr>
+      `;
+    }
+
+    const cpuValues = cpuData.map(d => d.normalized_percent);
+    const cpuStats = computePercentiles(cpuValues);
+    renderStatsTable('cpu-stats', cpuStats);
+
+    const memValues = memoryData.map(d => d.used_percent);
+    const memStats = computePercentiles(memValues);
+    renderStatsTable('memory-stats', memStats);
+
+    const latestDisk = diskData[diskData.length - 1];
+    renderDiskTable(latestDisk);
+  </script>
+</body>
+</html>
